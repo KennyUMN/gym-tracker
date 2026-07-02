@@ -67,4 +67,14 @@ export const SCHEMA_STATEMENTS: string[] = [
     synced INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL
   )`,
+  `CREATE TABLE IF NOT EXISTS progression_states (
+    user_id TEXT NOT NULL,
+    exercise_id TEXT NOT NULL,
+    consecutive_success_count INTEGER NOT NULL DEFAULT 0,
+    consecutive_failure_count INTEGER NOT NULL DEFAULT 0,
+    last_estimated_1rm_kg REAL,
+    current_target_weight_kg REAL,
+    last_updated_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, exercise_id)
+  )`,
 ]
