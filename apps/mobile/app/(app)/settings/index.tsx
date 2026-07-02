@@ -29,7 +29,7 @@ export default function SettingsScreen() {
       .upsert({ id: user.id, display_name: displayName, unit_system: unitSystem, experience_level: experienceLevel })
 
     if (error) {
-      setMessage('Failed to save settings.')
+      setMessage(`Failed to save settings: ${error.message}`)
     } else {
       await refreshProfile()
       setMessage('Settings saved.')
