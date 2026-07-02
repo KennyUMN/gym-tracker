@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# data dumps (regenerate via scripts/seed-exercises.ts)
+exercises-dataset.json

@@ -11,6 +11,8 @@ export interface Profile {
   display_name: string | null
   unit_system: 'metric' | 'imperial'
   experience_level: 'beginner' | 'intermediate' | 'advanced'
+  plate_increment_kg: number
+  plate_increment_lb: number
   created_at: string
   updated_at: string
 }
