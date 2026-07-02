@@ -1,24 +1,21 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
   generateProgressionRecommendation,
   getDefaultProgressionRule,
   calculateProgressionState,
-} from '@/engine/progression'
-import {
   calculateEpley1RM,
   calculateBrzycki1RM,
   roundToPlateIncrement,
   kgToLb,
   lbToKg,
   estimate1RM,
-} from '@/types'
-import {
+} from '../src/index'
+import type {
   Exercise,
   WorkoutSet,
-  ProgressionRule,
-  ProgressionRecommendation,
-} from '@/types'
-import type { ProgressionContext, ProgressionState } from '@/engine/progression'
+  ProgressionContext,
+  ProgressionState,
+} from '../src/index'
 
 const mockExercise: Exercise = {
   id: 'ex-1',
@@ -71,10 +68,10 @@ describe('Unit Conversion', () => {
   })
 
   it('converts lb to kg correctly', () => {
-      expect(lbToKg(220)).toBe(99.79)
-      expect(lbToKg(0)).toBe(0)
-      expect(lbToKg(5)).toBe(2.27)
-    })
+    expect(lbToKg(220)).toBe(99.79)
+    expect(lbToKg(0)).toBe(0)
+    expect(lbToKg(5)).toBe(2.27)
+  })
 })
 
 describe('1RM Calculations', () => {
@@ -93,9 +90,9 @@ describe('1RM Calculations', () => {
   })
 
   it('estimates 1RM with specified method', () => {
-      expect(estimate1RM(100, 10, 'epley')).toBe(133.3)
-      expect(estimate1RM(100, 10, 'brzycki')).toBe(133.3)
-    })
+    expect(estimate1RM(100, 10, 'epley')).toBe(133.3)
+    expect(estimate1RM(100, 10, 'brzycki')).toBe(133.3)
+  })
 })
 
 describe('Plate Rounding', () => {
@@ -156,12 +153,12 @@ describe('Progression Engine - Double Progression (Tier 1)', () => {
       createMockSet({ set_number: 2, weight_kg: 80, reps: 12 }),
       createMockSet({ set_number: 3, weight_kg: 80, reps: 12 }),
     ]
-    
+
     const context = createMockContext({
       recentSets: sets,
       currentRule: getDefaultProgressionRule('double_progression'),
     })
-    
+
     const state: ProgressionState = {
       exerciseId: 'ex-1',
       consecutiveSuccessCount: 0,
@@ -170,9 +167,9 @@ describe('Progression Engine - Double Progression (Tier 1)', () => {
       currentTargetWeight: 80,
       lastUpdatedAt: new Date().toISOString(),
     }
-    
+
     const recommendation = generateProgressionRecommendation(context, state)
-    
+
     expect(recommendation.recommended_weight_kg).toBe(82.5)
     expect(recommendation.should_deload).toBe(false)
     expect(recommendation.confidence).toBe('high')
@@ -185,12 +182,12 @@ describe('Progression Engine - Double Progression (Tier 1)', () => {
       createMockSet({ set_number: 2, weight_kg: 80, reps: 9 }),
       createMockSet({ set_number: 3, weight_kg: 80, reps: 10 }),
     ]
-    
+
     const context = createMockContext({
       recentSets: sets,
       currentRule: getDefaultProgressionRule('double_progression'),
     })
-    
+
     const state: ProgressionState = {
       exerciseId: 'ex-1',
       consecutiveSuccessCount: 0,
@@ -199,10 +196,9 @@ describe('Progression Engine - Double Progression (Tier 1)', () => {
       currentTargetWeight: 80,
       lastUpdatedAt: new Date().toISOString(),
     }
-    
+
     const recommendation = generateProgressionRecommendation(context, state)
-    
-    // Current implementation: hitting the range (not top) counts as success for double progression
+
     expect(recommendation.recommended_weight_kg).toBe(82.5)
     expect(recommendation.should_deload).toBe(false)
     expect(recommendation.confidence).toBe('high')
@@ -215,12 +211,12 @@ describe('Progression Engine - Double Progression (Tier 1)', () => {
       createMockSet({ set_number: 2, weight_kg: 80, reps: 5 }),
       createMockSet({ set_number: 3, weight_kg: 80, reps: 6 }),
     ]
-    
+
     const context = createMockContext({
       recentSets: sets,
       currentRule: getDefaultProgressionRule('double_progression'),
     })
-    
+
     const state: ProgressionState = {
       exerciseId: 'ex-1',
       consecutiveSuccessCount: 0,
@@ -229,11 +225,10 @@ describe('Progression Engine - Double Progression (Tier 1)', () => {
       currentTargetWeight: 80,
       lastUpdatedAt: new Date().toISOString(),
     }
-    
+
     const recommendation = generateProgressionRecommendation(context, state)
-    
+
     expect(recommendation.should_deload).toBe(true)
-    // Deload is applied to current target weight (80) not top set weight
     expect(recommendation.recommended_weight_kg).toBe(72.5)
     expect(recommendation.deload_percentage).toBe(10)
     expect(recommendation.confidence).toBe('high')
@@ -246,12 +241,12 @@ describe('Progression Engine - Double Progression (Tier 1)', () => {
       createMockSet({ set_number: 2, weight_kg: 80, reps: 5 }),
       createMockSet({ set_number: 3, weight_kg: 80, reps: 6 }),
     ]
-    
+
     const context = createMockContext({
       recentSets: sets,
       currentRule: getDefaultProgressionRule('double_progression'),
     })
-    
+
     const state: ProgressionState = {
       exerciseId: 'ex-1',
       consecutiveSuccessCount: 0,
@@ -260,9 +255,9 @@ describe('Progression Engine - Double Progression (Tier 1)', () => {
       currentTargetWeight: 80,
       lastUpdatedAt: new Date().toISOString(),
     }
-    
+
     const recommendation = generateProgressionRecommendation(context, state)
-    
+
     expect(recommendation.should_deload).toBe(false)
     expect(recommendation.recommended_weight_kg).toBe(80)
     expect(recommendation.reason).toContain('Holding weight')
@@ -276,12 +271,12 @@ describe('Progression Engine - Double Progression (Tier 1)', () => {
       createMockSet({ set_number: 4, weight_kg: 80, reps: 12, is_warmup: false }),
       createMockSet({ set_number: 5, weight_kg: 80, reps: 12, is_warmup: false }),
     ]
-    
+
     const context = createMockContext({
       recentSets: sets,
       currentRule: getDefaultProgressionRule('double_progression'),
     })
-    
+
     const state: ProgressionState = {
       exerciseId: 'ex-1',
       consecutiveSuccessCount: 0,
@@ -290,9 +285,9 @@ describe('Progression Engine - Double Progression (Tier 1)', () => {
       currentTargetWeight: 80,
       lastUpdatedAt: new Date().toISOString(),
     }
-    
+
     const recommendation = generateProgressionRecommendation(context, state)
-    
+
     expect(recommendation.recommended_weight_kg).toBe(82.5)
     expect(recommendation.confidence).toBe('high')
   })
@@ -305,12 +300,12 @@ describe('Progression Engine - RPE-Based (Tier 3)', () => {
       createMockSet({ set_number: 2, weight_kg: 80, reps: 10, rpe: 6 }),
       createMockSet({ set_number: 3, weight_kg: 80, reps: 10, rpe: 6 }),
     ]
-    
+
     const context = createMockContext({
       recentSets: sets,
       currentRule: getDefaultProgressionRule('rpe_based'),
     })
-    
+
     const state: ProgressionState = {
       exerciseId: 'ex-1',
       consecutiveSuccessCount: 0,
@@ -319,9 +314,9 @@ describe('Progression Engine - RPE-Based (Tier 3)', () => {
       currentTargetWeight: 80,
       lastUpdatedAt: new Date().toISOString(),
     }
-    
+
     const recommendation = generateProgressionRecommendation(context, state)
-    
+
     expect(recommendation.recommended_weight_kg).toBe(82.5)
     expect(recommendation.confidence).toBe('high')
     expect(recommendation.reason).toContain('below target')
@@ -333,12 +328,12 @@ describe('Progression Engine - RPE-Based (Tier 3)', () => {
       createMockSet({ set_number: 2, weight_kg: 80, reps: 8, rpe: 8 }),
       createMockSet({ set_number: 3, weight_kg: 80, reps: 8, rpe: 8 }),
     ]
-    
+
     const context = createMockContext({
       recentSets: sets,
       currentRule: getDefaultProgressionRule('rpe_based'),
     })
-    
+
     const state: ProgressionState = {
       exerciseId: 'ex-1',
       consecutiveSuccessCount: 0,
@@ -347,9 +342,9 @@ describe('Progression Engine - RPE-Based (Tier 3)', () => {
       currentTargetWeight: 80,
       lastUpdatedAt: new Date().toISOString(),
     }
-    
+
     const recommendation = generateProgressionRecommendation(context, state)
-    
+
     expect(recommendation.recommended_weight_kg).toBe(80)
     expect(recommendation.confidence).toBe('medium')
     expect(recommendation.reason).toContain('on target')
@@ -361,12 +356,12 @@ describe('Progression Engine - RPE-Based (Tier 3)', () => {
       createMockSet({ set_number: 2, weight_kg: 80, reps: 5, rpe: 10 }),
       createMockSet({ set_number: 3, weight_kg: 80, reps: 6, rpe: 10 }),
     ]
-    
+
     const context = createMockContext({
       recentSets: sets,
       currentRule: getDefaultProgressionRule('rpe_based'),
     })
-    
+
     const state: ProgressionState = {
       exerciseId: 'ex-1',
       consecutiveSuccessCount: 0,
@@ -375,12 +370,11 @@ describe('Progression Engine - RPE-Based (Tier 3)', () => {
       currentTargetWeight: 80,
       lastUpdatedAt: new Date().toISOString(),
     }
-    
+
     const recommendation = generateProgressionRecommendation(context, state)
-    
+
     expect(recommendation.should_deload).toBe(true)
     expect(recommendation.deload_percentage).toBe(15)
-    // Deload applied to current target weight 80 * 0.85 = 68, rounded to 67.5
     expect(recommendation.recommended_weight_kg).toBe(67.5)
   })
 })
@@ -392,12 +386,12 @@ describe('Progression State Calculation', () => {
       createMockSet({ set_number: 2, weight_kg: 80, reps: 12 }),
       createMockSet({ set_number: 3, weight_kg: 80, reps: 12 }),
     ]
-    
+
     const context = createMockContext({
       recentSets: sets,
       currentRule: getDefaultProgressionRule('double_progression'),
     })
-    
+
     const currentState: ProgressionState = {
       exerciseId: 'ex-1',
       consecutiveSuccessCount: 0,
@@ -406,10 +400,10 @@ describe('Progression State Calculation', () => {
       currentTargetWeight: 80,
       lastUpdatedAt: new Date().toISOString(),
     }
-    
+
     const recommendation = generateProgressionRecommendation(context, currentState)
     const newState = calculateProgressionState(recommendation, currentState, context)
-    
+
     expect(newState.currentTargetWeight).toBe(82.5)
     expect(newState.lastEstimated1RM).toBeGreaterThan(0)
     expect(newState.exerciseId).toBe('ex-1')
@@ -423,14 +417,14 @@ describe('Imperial Units', () => {
       createMockSet({ set_number: 2, weight_kg: 80, reps: 12 }),
       createMockSet({ set_number: 3, weight_kg: 80, reps: 12 }),
     ]
-    
+
     const context = createMockContext({
       recentSets: sets,
       currentRule: getDefaultProgressionRule('double_progression'),
       userUnitSystem: 'imperial',
       plateIncrement: 2.5,
     })
-    
+
     const state: ProgressionState = {
       exerciseId: 'ex-1',
       consecutiveSuccessCount: 0,
@@ -439,11 +433,10 @@ describe('Imperial Units', () => {
       currentTargetWeight: 80,
       lastUpdatedAt: new Date().toISOString(),
     }
-    
+
     const recommendation = generateProgressionRecommendation(context, state)
-    
+
     expect(recommendation.recommended_weight_lb).toBeGreaterThan(0)
-    // The implementation rounds to plate increment in kg then converts to lb
     expect(recommendation.recommended_weight_lb).toBe(181.9)
   })
 })

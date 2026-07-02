@@ -4,11 +4,10 @@ import {
   ProgressionRecommendation,
   WorkoutSet,
   Exercise,
-  calculateEpley1RM,
-  roundToPlateIncrement,
   ProgressionContext,
   ProgressionState,
-} from '@/types'
+} from './types'
+import { calculateEpley1RM, roundToPlateIncrement } from './math'
 
 function getWeightInKg(set: WorkoutSet): number {
   return set.weight_kg ?? (set.weight_lb ? set.weight_lb * 0.453592 : 0)
@@ -51,35 +50,35 @@ export function generateProgressionRecommendation(
 ): ProgressionRecommendation {
   const { exercise, recentSets, currentRule, userUnitSystem, plateIncrement, lastRecommendedWeight } = context
   const isMetric = userUnitSystem === 'metric'
-  
+
   const latestSession = recentSets[0]
   const latestSessionSets = recentSets.filter(s => s.session_id === latestSession?.session_id)
-  
+
   const topSets = getTopWorkingSets(latestSessionSets)
   const topSet = topSets[0]
   const topSetWeightKg = topSet ? getWeightInKg(topSet) : 0
   const topSetReps = topSet?.reps ?? 0
-  
+
   const sessionVolume = calculateSessionVolume(latestSessionSets)
   const avgRPE = calculateAverageRPE(latestSessionSets)
-  
+
   const hitTarget = didHitRepTarget(latestSessionSets, currentRule.rep_target_min, currentRule.rep_target_max)
   const failedTarget = didFailRepTarget(latestSessionSets, currentRule.rep_target_min)
-  
+
   let newConsecutiveSuccess = progressionState?.consecutiveSuccessCount ?? 0
   let newConsecutiveFailure = progressionState?.consecutiveFailureCount ?? 0
   let recommendedWeightKg = progressionState?.currentTargetWeight ?? lastRecommendedWeight ?? topSetWeightKg
   let shouldDeload = false
-  let deloadPercentage = currentRule.deload_percentage
+  const deloadPercentage = currentRule.deload_percentage
   let reason = ''
   let confidence: 'high' | 'medium' | 'low' = 'medium'
-  
+
   if (currentRule.type === 'linear' || currentRule.type === 'double_progression') {
     if (hitTarget) {
       newConsecutiveSuccess += 1
       newConsecutiveFailure = 0
-      const incrementKg = isMetric 
-        ? currentRule.weight_increment_kg 
+      const incrementKg = isMetric
+        ? currentRule.weight_increment_kg
         : currentRule.weight_increment_lb * 0.453592
       recommendedWeightKg = roundToPlateIncrement(
         recommendedWeightKg + incrementKg,
@@ -90,7 +89,7 @@ export function generateProgressionRecommendation(
     } else if (failedTarget) {
       newConsecutiveFailure += 1
       newConsecutiveSuccess = 0
-      
+
       if (newConsecutiveFailure >= currentRule.deload_trigger_failed_sessions) {
         shouldDeload = true
         recommendedWeightKg = roundToPlateIncrement(
@@ -112,12 +111,12 @@ export function generateProgressionRecommendation(
   } else if (currentRule.type === 'rpe_based' && avgRPE !== null) {
     const rpeTarget = currentRule.rpe_target ?? 8
     const incrementThreshold = currentRule.rpe_increment_threshold ?? 1
-    
+
     if (avgRPE <= rpeTarget - incrementThreshold) {
       newConsecutiveSuccess += 1
       newConsecutiveFailure = 0
-      const incrementKg = isMetric 
-        ? currentRule.weight_increment_kg 
+      const incrementKg = isMetric
+        ? currentRule.weight_increment_kg
         : currentRule.weight_increment_lb * 0.453592
       recommendedWeightKg = roundToPlateIncrement(
         recommendedWeightKg + incrementKg,
@@ -128,7 +127,7 @@ export function generateProgressionRecommendation(
     } else if (avgRPE > rpeTarget + incrementThreshold) {
       newConsecutiveFailure += 1
       newConsecutiveSuccess = 0
-      
+
       if (newConsecutiveFailure >= currentRule.deload_trigger_failed_sessions) {
         shouldDeload = true
         recommendedWeightKg = roundToPlateIncrement(
@@ -151,11 +150,7 @@ export function generateProgressionRecommendation(
     reason = 'Insufficient data for progression decision. Holding current weight.'
     confidence = 'low'
   }
-  
-  const estimated1RM = topSetWeightKg > 0 && topSetReps > 0 
-    ? calculateEpley1RM(topSetWeightKg, topSetReps)
-    : progressionState?.lastEstimated1RM ?? null
-  
+
   return {
     exercise_id: exercise.id,
     exercise_name: exercise.name,
@@ -225,19 +220,19 @@ export function calculateProgressionState(
   currentState: ProgressionState | null,
   context: ProgressionContext
 ): ProgressionState {
-  const { exercise, recentSets, currentRule } = context
+  const { exercise, recentSets } = context
   const latestSession = recentSets.length > 0 ? recentSets[0] : null
-  const latestSessionSets = latestSession 
+  const latestSessionSets = latestSession
     ? recentSets.filter(s => s.session_id === latestSession.session_id)
     : []
   const topSets = getTopWorkingSets(latestSessionSets)
   const topSet = topSets[0]
   const topSetWeightKg = topSet ? getWeightInKg(topSet) : 0
   const topSetReps = topSet?.reps ?? 0
-  const estimated1RM = topSetWeightKg > 0 && topSetReps > 0 
+  const estimated1RM = topSetWeightKg > 0 && topSetReps > 0
     ? calculateEpley1RM(topSetWeightKg, topSetReps)
     : currentState?.lastEstimated1RM ?? null
-  
+
   return {
     exerciseId: exercise.id,
     consecutiveSuccessCount: currentState?.consecutiveSuccessCount ?? 0,

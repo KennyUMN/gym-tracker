@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
-import { generateProgressionRecommendation, getDefaultProgressionRule, calculateProgressionState } from '@/engine/progression'
-import type { ProgressionContext, ProgressionState, WorkoutSet, Exercise, ProgressionRule } from '@/types'
+import { generateProgressionRecommendation, getDefaultProgressionRule, calculateProgressionState } from '@gym-tracker/engine'
+import type { ProgressionContext, ProgressionState, WorkoutSet, Exercise, ProgressionRule } from '@gym-tracker/engine'
 
 export async function POST(request: NextRequest) {
   try {
