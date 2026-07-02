@@ -1,8 +1,8 @@
-import { Redirect } from 'expo-router'
+import { Redirect, Stack } from 'expo-router'
 import { View, ActivityIndicator } from 'react-native'
 import { useAuth } from '@/auth/AuthProvider'
 
-export default function Index() {
+export default function AppLayout() {
   const { user, loading } = useAuth()
 
   if (loading) {
@@ -13,5 +13,9 @@ export default function Index() {
     )
   }
 
-  return <Redirect href={user ? '/(app)' : '/(auth)/login'} />
+  if (!user) {
+    return <Redirect href="/(auth)/login" />
+  }
+
+  return <Stack screenOptions={{ headerShown: false }} />
 }
