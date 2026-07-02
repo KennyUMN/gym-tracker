@@ -1,9 +1,11 @@
 import { Redirect, Stack } from 'expo-router'
 import { View, ActivityIndicator } from 'react-native'
 import { useAuth } from '@/auth/AuthProvider'
+import { useSyncOnReconnect } from '@/sync/useSyncOnReconnect'
 
 export default function AppLayout() {
   const { user, loading } = useAuth()
+  useSyncOnReconnect(user?.id)
 
   if (loading) {
     return (
