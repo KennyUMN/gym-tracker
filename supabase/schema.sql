@@ -212,13 +212,17 @@ CREATE TRIGGER update_progression_states_updated_at BEFORE UPDATE ON progression
 
 -- Function to create profile on signup
 CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
   INSERT INTO profiles (id, display_name, unit_system, experience_level)
   VALUES (NEW.id, NEW.raw_user_meta_data->>'display_name', 'metric', 'beginner');
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
